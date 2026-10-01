@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kyle Betting Tips</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui; background:#0b0f19; color:#fff; padding:24px; max-width:900px; margin:auto; }
+
+    /* ===== GATE BACKGROUND ===== */
+    .gate-bg {
+      position:fixed; inset:0; z-index:-1;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(34,197,94,0.18), transparent 45%),
+        radial-gradient(circle at 80% 90%, rgba(14,165,233,0.18), transparent 45%),
+        linear-gradient(180deg, #060912 0%, #0b0f19 100%);
+      overflow:hidden;
+    }
+    .gate-bg::before {
+      content:""; position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.06) 1px, transparent 1px);
+      background-size:44px 44px;
+      mask-image: radial-gradient(circle at 50% 40%, #000 40%, transparent 75%);
+    }
+    /* Floating football / stats glyphs */
+    .float-icons { position:absolute; inset:0; pointer-events:none; }
+    .float-icons span {
+      position:absolute; font-size:42px; opacity:0.10;
+      animation: float 9s ease-in-out infinite;
+    }
+    .float-icons span:nth-child(1){ top:12%; left:8%;  animation-delay:0s; }
+    .float-icons span:nth-child(2){ top:70%; left:15%; animation-delay:1.5s; }
+    .float-icons span:nth-child(3){ top:22%; right:10%; animation-delay:3s; }
+    .float-icons span:nth-child(4){ top:78%; right:12%; animation-delay:2s; }
+    .float-icons span:nth-child(5){ top:45%; left:4%;  animation-delay:4s; }
+    .float-icons span:nth-child(6){ top:55%; right:5%; animation-delay:5s; }
+    @keyframes float {
+      0%,100% { transform: translateY(0) rotate(-6deg); }
+      50%     { transform: translateY(-22px) rotate(6deg); }
+    }
+    /* Live ticker strip at very top */
+    .ticker {
+      position:fixed; top:0; left:0; right:0; z-index:5;
+      background:rgba(6,9,18,0.9);
+      border-bottom:1px solid rgba(34,197,94,0.25);
+      overflow:hidden; height:34px; display:flex; align-items:center;
+    }
+    .ticker-track {
+      display:flex; gap:40px; white-space:nowrap;
+      animation: scroll 30s linear infinite;
+      font-size:12px; color:#8892b0; padding-left:100%;
+    }
+    .ticker-track b { color:#22c55e; }
+    @keyframes scroll { to { transform: translateX(-200%); } }
+
+    /* Header */
+    .header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .logo { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#22c55e,#0ea5e9); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:#000; }
+    .brand { font-size:22px; font-weight:800; letter-spacing:0.5px; }
+    .brand span { color:#22c55e; }
+    .tag { font-size:12px; color:#8892b0; margin-top:-2px; }
+
+    .card { background:#151b2b; border-radius:16px; padding:22px; margin-bottom:16px; }
+    .sub { color:#8892b0; font-size:14px; }
+    .row { display:flex; gap:10px; margin-top:16px; }
+    button { flex:1; padding:14px; border-radius:10px; border:none; font-weight:700; cursor:pointer; font-size:14px; }
+    .primary { background:#22c55e; color:#000; }
+    .secondary { background:#2a3350; color:#fff; }
+    .danger { background:#ef4444; color:#fff; }
+    .telegram { background:#229ED9; color:#fff; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    input, select { width:100%; padding:14px; border-radius:10px; border:1px solid #2a3350; background:#0b0f19; color:#fff; margin-top:8px; font-size:15px; letter-spacing:2px; text-align:center; }
+    .hidden { display:none !important; }
+    .center { text-align:center; }
+    h2 { margin:0 0 8px 0; }
+    h3 { margin:0 0 8px 0; }
+    .label { color:#8892b0; font-size:13px; margin-top:14px; display:block; }
+
+    /* Gate */
+    .gate { max-width:460px; margin:80px auto; text-align:center; position:relative; z-index:2; }
+    .gate h1 { font-size:30px; margin:14px 0 4px; }
+    .gate .code-input { font-size:22px; font-weight:700; letter-spacing:6px; text-transform:uppercase; }
+    .gate .err { color:#ef4444; font-size:13px; margin-top:10px; min-height:18px; }
+    .gate .logo { margin:auto; width:60px; height:60px; font-size:24px; border-radius:16px; }
+    .glass {
+      background:rgba(21,27,43,0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border:1px solid rgba(34,197,94,0.18);
+      border-radius:18px;
+      padding:26px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* Tier badge */
+    .tier-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+    .tier-regular { background:rgba(136,146,176,0.2); color:#8892b0; }
+    .tier-vip { background:rgba(245,158,11,0.15); color:#f59e0b; }
+    .tier-vvip { background:rgba(239,68,68,0.15); color:#ef4444; }
+
+    /* Tips */
+    .tip { background:#0b0f19; border-radius:12px; padding:14px; margin-bottom:10px; border-left:3px solid #22c55e; }
+    .tip.locked { border-left-color:#2a3350; opacity:0.7; }
+    .tip-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .tip-match { font-weight:700; font-size:14px; }
+    .tip-odds { background:#22c55e; color:#000; font-weight:800; font-size:12px; padding:3px 9px; border-radius:6px; }
+    .tip-odds.locked { background:#2a3350; color:#8892b0; }
+    .tip-meta { font-size:12px; color:#8892b0; margin-top:4px; }
+
+    /* Pricing */
+    .grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; }
+    @media (max-width: 780px) { .grid { grid-template-columns: 1fr; } }
+    .plan { background:#0b0f19; border-radius:14px; padding:20px; text-align:center; border:2px solid #2a3350; }
+    .plan.featured { border-color:#22c55e; }
+    .plan.vip { border-color:#f59e0b; }
+    .plan.vvip { border-color:#ef4444; }
+    .plan h3 { margin:0 0 4px; font-size:16px; }
+    .plan .price { font-size:28px; font-weight:800; margin:10px 0; }
+    .plan ul { list-style:none; padding:0; margin:12px 0; font-size:13px; color:#8892b0; text-align:left; }
+    .plan li { padding:4px 0; }
+    .plan li::before { content:'✓ '; color:#22c55e; font-weight:700; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== LIVE TICKER ===== -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <span><b>⚽ LIVE</b> Arsenal 2-1 Chelsea · 78'</span>
+      <span><b>🔥 HOT</b> Over 2.5 @ 1.85</span>
+      <span><b>⚽ LIVE</b> Real Madrid 1-0 Sevilla · 62'</span>
+      <span><b>✅ WON</b> Bayern BTTS @ 1.75</span>
+      <span><b>⚡ VVIP</b> Correct Score 3-1 @ 8.50</span>
+      <span><b>⚽ LIVE</b> PSG 0-0 Marseille · 34'</span>
+    </div>
+  </div>
+
+  <!-- ===== GATE BACKGROUND ===== -->
+  <div class="gate-bg">
+    <div class="float-icons">
+      <span>⚽</span><span>🏆</span><span>📊</span><span>⚽</span><span>🎯</span><span>🏟️</span>
+    </div>
+  </div>
+
+  <!-- ===== GATE ===== -->
+  <div id="gate" class="gate" style="margin-top:80px;">
+    <div class="glass">
+      <div class="logo">K</div>
+      <h1>Kyle <span style="color:#22c55e;">Betting Tips</span></h1>
+      <p class="sub">Enter your access code to continue</p>
+      <input id="codeInput" class="code-input" type="text" placeholder="XXXX-XXXX" maxlength="12">
+      <button class="primary" style="width:100%; margin-top:14px;" onclick="checkCode()">Unlock</button>
+      <div id="gateErr" class="err"></div>
+    </div>
+
+    <div class="glass" style="margin-top:18px; padding:20px;">
+      <p class="sub" style="margin:0;">Don't have a code?</p>
+      <button class="telegram" style="width:100%; margin-top:10px;" onclick="openTelegram()">Buy on Telegram</button>
+      <p class="sub" style="font-size:12px; margin-top:10px;">Codes are issued instantly after payment via Telegram.</p>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="app" class="hidden">
+
+    <div class="header">
+      <div class="logo">K</div>
+      <div style="flex:1;">
+        <div class="brand">Kyle <span>Betting Tips</span></div>
+        <div class="tag">Betting Tips · Odds Marketplace</div>
+      </div>
+      <div style="text-align:right;">
+        <div id="tierBadge" class="tier-badge tier-regular">REGULAR</div>
+        <div class="sub" style="font-size:11px; margin-top:4px; cursor:pointer;" onclick="logout()">Logout</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">Today's Tips</h3>
+        <span class="sub" id="tipCount"></span>
+      </div>
+      <div id="tipsList" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Odds Marketplace</h3>
+      <p class="sub" style="margin-top:4px;">Buy verified odds from top sellers.</p>
+      <div id="oddsList" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Upgrade Your Access</h3>
+      <p class="sub" style="margin-top:4px;">Unlock more tips, higher odds, and premium sellers.</p>
+      <div class="grid" style="margin-top:18px;">
+        <div class="plan">
+          <h3>Regular</h3>
+          <div class="price">$10</div>
+          <ul>
+            <li>3 tips daily</li>
+            <li>Odds up to 2.00</li>
+            <li>Basic sellers</li>
+          </ul>
+          <button class="secondary" style="width:100%;" onclick="buyPlan('Regular',10)">Buy — $10</button>
+        </div>
+        <div class="plan featured">
+          <h3>VIP</h3>
+          <div class="price">$50</div>
+          <ul>
+            <li>8 tips daily</li>
+            <li>Odds up to 5.00</li>
+            <li>Verified sellers</li>
+            <li>Rollover plans</li>
+          </ul>
+          <button class="primary" style="width:100%;" onclick="buyPlan('VIP',50)">Buy — $50</button>
+        </div>
+        <div class="plan vvip">
+          <h3>VVIP</h3>
+          <div class="price">$100</div>
+          <ul>
+            <li>Unlimited tips</li>
+            <li>Odds 10.00+</li>
+            <li>VIP sellers only</li>
+            <li>1-on-1 support</li>
+          </ul>
+          <button class="danger" style="width:100%;" onclick="buyPlan('VVIP',100)">Buy — $100</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== PURCHASE MODAL ===== -->
+  <div id="buyModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; padding:20px; z-index:100;">
+    <div class="card" style="max-width:420px; width:100%;">
+      <h3 id="buyTitle">Buy Plan</h3>
+      <p class="sub" style="margin-top:4px;">Complete payment via Telegram to receive your access code.</p>
+
+      <div style="background:#0b0f19; border-radius:12px; padding:16px; margin-top:16px;">
+        <div class="sub">Plan</div>
+        <div style="font-size:18px; font-weight:700;" id="buyPlanName">VIP</div>
+        <div class="sub" style="margin-top:10px;">Amount</div>
+        <div style="font-size:24px; font-weight:800; color:#22c55e;" id="buyPrice">$50</div>
+      </div>
+
+      <div class="label">Payment Methods Accepted</div>
+      <p class="sub" style="margin-top:6px;">M-Pesa · Airtel Money · USDT (TRC20)</p>
+
+      <div class="row">
+        <button class="secondary" onclick="closeBuy()">Cancel</button>
+        <button class="telegram" onclick="openTelegram()">Pay on Telegram</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CODE UNLOCKED MODAL ===== -->
+  <div id="codeModal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; padding:20px; z-index:100;">
+    <div class="card center" style="max-width:420px; width:100%;">
+      <h2>✅</h2>
+      <h3>Access Granted</h3>
+      <p class="sub" id="welcomeMsg"></p>
+      <button class="primary" style="width:100%; margin-top:12px;" onclick="enterApp()">Continue</button>
+    </div>
+  </div>
+
+<script>
+  // ===== CONFIG =====
+  const TELEGRAM_URL = 'https://t.me/hashimbyron';
+
+  // ===== SECRET CODES (demo) =====
+  const CODES = {
+    'REG-1001': 'Regular',
+    'VIP-2001': 'VIP',
+    'VVIP-3001': 'VVIP',
+    'KYLEFX01': 'Regular',
+    'KYLEFX02': 'VIP',
+    'KYLEFX03': 'VVIP',
+  };
+
+  let currentTier = 'Regular';
+
+  function el(id) { return document.getElementById(id); }
+
+  // ===== GATE =====
+  function checkCode() {
+    const code = el('codeInput').value.trim().toUpperCase();
+    el('gateErr').textContent = '';
+    if (!code) { el('gateErr').textContent = 'Please enter a code'; return; }
+
+    if (CODES[code]) {
+      currentTier = CODES[code];
+      el('codeModal').classList.remove('hidden');
+      el('welcomeMsg').textContent = `Welcome back, ${currentTier} member.`;
+    } else {
+      el('gateErr').textContent = 'Invalid code. Purchase one on Telegram.';
+    }
+  }
+
+  function enterApp() {
+    el('codeModal').classList.add('hidden');
+    el('gate').classList.add('hidden');
+    document.querySelector('.gate-bg').classList.add('hidden');
+    document.querySelector('.ticker').classList.add('hidden');
+    el('app').classList.remove('hidden');
+    renderTier();
+    renderTips();
+    renderOdds();
+  }
+
+  function logout() {
+    el('app').classList.add('hidden');
+    el('gate').classList.remove('hidden');
+    document.querySelector('.gate-bg').classList.remove('hidden');
+    document.querySelector('.ticker').classList.remove('hidden');
+    el('codeInput').value = '';
+    el('gateErr').textContent = '';
+  }
+
+  function renderTier() {
+    const badge = el('tierBadge');
+    badge.textContent = currentTier.toUpperCase();
+    badge.className = 'tier-badge ' + (
+      currentTier === 'Regular' ? 'tier-regular' :
+      currentTier === 'VIP' ? 'tier-vip' : 'tier-vvip'
+    );
+  }
+
+  // ===== TIPS =====
+  const ALL_TIPS = [
+    { match:'Arsenal vs Chelsea', tip:'Over 2.5 Goals', odds:'1.85', tier:'Regular', time:'Today 20:00' },
+    { match:'Real Madrid vs Sevilla', tip:'Real Madrid Win', odds:'1.60', tier:'Regular', time:'Today 22:00' },
+    { match:'Bayern vs Dortmund', tip:'Both Teams Score', odds:'1.75', tier:'Regular', time:'Tomorrow 19:30' },
+    { match:'Liverpool vs Man City', tip:'Liverpool -1 Handicap', odds:'3.20', tier:'VIP', time:'Today 21:00' },
+    { match:'PSG vs Marseille', tip:'Correct Score 3-1', odds:'4.50', tier:'VIP', time:'Tomorrow 21:45' },
+    { match:'Inter vs Milan', tip:'First Half Over 1.5', odds:'2.80', tier:'VIP', time:'Today 20:45' },
+    { match:'Barcelona vs Atletico', tip:'Exact Score 2-2', odds:'8.50', tier:'VVIP', time:'Tomorrow 22:00' },
+    { match:'Napoli vs Juventus', tip:'HT/FT: Draw/Napoli', odds:'12.00', tier:'VVIP', time:'Today 19:00' },
+    { match:'Ajax vs PSV', tip:'Total Corners Over 11', odds:'10.50', tier:'VVIP', time:'Tomorrow 18:00' },
+  ];
+
+  function tipVisible(tip) {
+    if (currentTier === 'VVIP') return true;
+    if (currentTier === 'VIP') return tip.tier !== 'VVIP';
+    return tip.tier === 'Regular';
+  }
+
+  function renderTips() {
+    const visible = ALL_TIPS.filter(tipVisible);
+    el('tipCount').textContent = `${visible.length} of ${ALL_TIPS.length} unlocked`;
+
+    el('tipsList').innerHTML = ALL_TIPS.map(tip => {
+      const unlocked = tipVisible(tip);
+      const badgeClass = tip.tier === 'VVIP' ? 'tier-vvip' : tip.tier === 'VIP' ? 'tier-vip' : 'tier-regular';
+      return `
+        <div class="tip ${unlocked ? '' : 'locked'}">
+          <div class="tip-head">
+            <div class="tip-match">${tip.match}</div>
+            <div class="tip-odds ${unlocked ? '' : 'locked'}">${unlocked ? tip.odds : '🔒 VIP+'}</div>
+          </div>
+          <div class="tip-meta">${unlocked ? tip.tip : 'Upgrade to unlock this tip'}</div>
+          <div class="tip-meta" style="margin-top:6px; display:flex; justify-content:space-between;">
+            <span class="tier-badge ${badgeClass}">${tip.tier}</span>
+            <span>${tip.time}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ===== ODDS =====
+  const ODDS = [
+    { seller:'TipMaster254', league:'EPL', odds:'2.10', price:'$5', tier:'Regular' },
+    { seller:'SureBetsKE', league:'La Liga', odds:'3.40', price:'$8', tier:'Regular' },
+    { seller:'GoldenPicks', league:'Serie A', odds:'5.20', price:'$15', tier:'VIP' },
+    { seller:'EliteOdds', league:'UCL', odds:'8.00', price:'$25', tier:'VIP' },
+    { seller:'KyleFXPrime', league:'Mixed', odds:'15.00', price:'$50', tier:'VVIP' },
+  ];
+
+  function renderOdds() {
+    el('oddsList').innerHTML = ODDS.map(o => {
+      const locked = !tipVisible(o);
+      const badgeClass = o.tier === 'VVIP' ? 'tier-vvip' : o.tier === 'VIP' ? 'tier-vip' : 'tier-regular';
+      return `
+        <div class="tip ${locked ? 'locked' : ''}">
+          <div class="tip-head">
+            <div class="tip-match">${o.seller}</div>
+            <div class="tip-odds ${locked ? 'locked' : ''}">${locked ? '🔒' : o.odds}</div>
+          </div>
+          <div class="tip-meta">${o.league} · ${locked ? 'Locked' : 'Price: ' + o.price}</div>
+          <div style="margin-top:6px;">
+            <span class="tier-badge ${badgeClass}">${o.tier}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ===== BUY =====
+  function buyPlan(name, price) {
+    el('buyPlanName').textContent = name;
+    el('buyPrice').textContent = '$' + price;
+    el('buyTitle').textContent = `Buy ${name} Plan`;
+    el('buyModal').classList.remove('hidden');
+  }
+  function closeBuy() { el('buyModal').classList.add('hidden'); }
+
+  function openTelegram() {
+    window.open(TELEGRAM_URL, '_blank');
+  }
+
+  el('codeInput').addEventListener('keypress', e => { if (e.key === 'Enter') checkCode(); });
+</script>
+</body>
+        </html>
